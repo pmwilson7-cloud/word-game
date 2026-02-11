@@ -1,0 +1,76 @@
+:root {
+  /* Colors */
+  --color-bg: #1a1a2e;
+  --color-surface: #16213e;
+  --color-surface-alt: #0f3460;
+  --color-primary: #e94560;
+  --color-primary-hover: #ff6b81;
+  --color-text: #eee;
+  --color-text-muted: #999;
+  --color-border: #334;
+
+  /* Board colors */
+  --color-cell: #c8b98a;
+  --color-cell-hover: #d4c99a;
+  --color-dl: #a8d8ea;
+  --color-tl: #1e90ff;
+  --color-dw: #ffb6b9;
+  --color-tw: #e94560;
+  --color-star: #ffb6b9;
+
+  /* Tile */
+  --color-tile: #f5e6c8;
+  --color-tile-text: #333;
+  --color-tile-hover: #ffeebb;
+  --color-tile-placed: #e8d5a8;
+
+  /* Sizing */
+  --board-size: min(90vw, 600px);
+  --cell-size: calc(var(--board-size) / 15);
+  --tile-size: calc(var(--cell-size) * 0.9);
+  --rack-tile-size: 48px;
+
+  /* Other */
+  --radius: 4px;
+  --radius-lg: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --transition-fast: 0.15s ease;
+
+  /* Timer */
+  --color-timer-warning: #ff9800;
+  --color-timer-danger: #f44336;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  font-size: 14px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+button:active {
+  transform: scale(0.97);
+}

@@ -1,0 +1,67 @@
+.game {
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.turnLabel {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* On wide screens, use a sidebar layout */
+@media (min-width: 960px) {
+  .game {
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto 1fr auto auto;
+    gap: 16px;
+    padding: 24px 16px;
+    align-items: start;
+  }
+
+  .scoreboard {
+    grid-column: 1 / -1;
+  }
+
+  .boardArea {
+    grid-column: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sidebar {
+    grid-column: 2;
+    grid-row: 2 / 5;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 240px;
+  }
+
+  .playerArea {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .controlsArea {
+    grid-column: 1;
+  }
+}
+
+/* Mobile: smaller rack tiles */
+@media (max-width: 480px) {
+  .game {
+    padding: 8px 4px;
+    gap: 8px;
+  }
+}

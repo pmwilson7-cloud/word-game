@@ -1,0 +1,224 @@
+import { useCallback, useRef, useEffect, useMemo } from 'react';
+import { DndContext, DragOverlay, type DragStartEvent, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { useGame } from './hooks/useGame.ts';
+import { useScorePreview } from './hooks/useScorePreview.ts';
+import { Setup } from './components/Setup/Setup.tsx';
+import { Board } from './components/Board/Board.tsx';
+import { Rack } from './components/Rack/Rack.tsx';
+import { Scoreboard } from './components/Scoreboard/Scoreboard.tsx';
+import { Controls } from './components/Controls/Controls.tsx';
+import { History } from './components/History/History.tsx';
+import { EndGame } from './components/EndGame/EndGame.tsx';
+import { ExchangeModal } from './components/Controls/ExchangeModal.tsx';
+import { BlankTileModal } from './components/Controls/BlankTileModal.tsx';
+import { TurnTransition } from './components/Controls/TurnTransition.tsx';
+import { PauseOverlay } from './components/Controls/PauseOverlay.tsx';
+import { ExitConfirmModal } from './components/Controls/ExitConfirmModal.tsx';
+import { Tile } from './components/Tile/Tile.tsx';
+import type { Tile as TileType, TimerConfig } from './types/index.ts';
+import './styles/variables.css';
+import styles from './App.module.css';
+
+function App() {
+  const game = useGame();
+  const dragTileRef = useRef<TileType | null>(null);
+  const prevPlayerIndex = useRef(game.currentPlayerIndex);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  // Show turn transition on player change during playing phase
+  useEffect(() => {
+    if (game.phase === 'playing' && prevPlayerIndex.current !== game.currentPlayerIndex) {
+      if (game.moveHistory.length > 0) {
+        game.ui.showTransition(game.players[game.currentPlayerIndex].name);
+      }
+      prevPlayerIndex.current = game.currentPlayerIndex;
+    }
+  }, [game.currentPlayerIndex, game.phase, game.moveHistory.length, game.ui, game.players]);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const tile = event.active.data.current?.tile as TileType | undefined;
+    if (tile) dragTileRef.current = tile;
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    dragTileRef.current = null;
+    const { active, over } = event;
+    if (!over) return;
+
+    const tile = active.data.current?.tile as TileType | undefined;
+    const dropData = over.data.current as { row?: number; col?: number } | undefined;
+
+    if (tile && dropData?.row !== undefined && dropData?.col !== undefined) {
+      const source = active.data.current?.source;
+      if (source === 'rack') {
+        if (tile.isBlank && !tile.designatedLetter) {
+          // Need to pick a letter first — place it then prompt
+          game.placeTileOnBoard(tile, dropData.row, dropData.col);
+          game.ui.openBlankModal(tile.id);
+        } else {
+          game.placeTileOnBoard(tile, dropData.row, dropData.col);
+        }
+      } else if (source === 'board') {
+        const sourceRow = active.data.current?.sourceRow as number;
+        const sourceCol = active.data.current?.sourceCol as number;
+        if (sourceRow !== dropData.row || sourceCol !== dropData.col) {
+          game.moveTileOnBoard(sourceRow, sourceCol, dropData.row, dropData.col);
+        }
+      }
+    }
+  }, [game]);
+
+  const handleCellClick = useCallback((row: number, col: number) => {
+    game.removeTileFromBoard(row, col);
+  }, [game]);
+
+  const pendingPositions = new Set(
+    game.pendingPlacements.map(p => `${p.position.row},${p.position.col}`)
+  );
+
+  const scorePreview = useScorePreview(game.board, game.pendingPlacements);
+
+  const validWordPositions = useMemo(() => {
+    if (!scorePreview?.valid || scorePreview.words.length === 0) return undefined;
+    const positions = new Set<string>();
+    for (const word of scorePreview.words) {
+      for (const pos of word.positions) {
+        positions.add(`${pos.row},${pos.col}`);
+      }
+    }
+    return positions;
+  }, [scorePreview]);
+
+  const currentPlayer = game.players[game.currentPlayerIndex];
+
+  // Setup screen
+  if (game.phase === 'setup') {
+    return (
+      <Setup
+        onStart={(names: string[], config: TimerConfig) => game.startGame(names, config)}
+        hasSavedGame={game.hasSavedGame}
+        onResumeSavedGame={() => game.resumeSavedGame()}
+      />
+    );
+  }
+
+  return (
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className={styles.game}>
+        <div className={styles.scoreboard}>
+          <Scoreboard players={game.players} currentPlayerIndex={game.currentPlayerIndex} />
+        </div>
+
+        <div className={styles.boardArea}>
+          <Board board={game.board} pendingPositions={pendingPositions} validWordPositions={validWordPositions} onCellClick={handleCellClick} />
+        </div>
+
+        <div className={styles.playerArea}>
+          {currentPlayer && (
+            <>
+              <div className={styles.turnLabel}>
+                {currentPlayer.name}'s turn
+              </div>
+              <Rack tiles={currentPlayer.rack} />
+            </>
+          )}
+        </div>
+
+        <div className={styles.controlsArea}>
+          <Controls
+            onPlay={() => game.commitMove()}
+            onPass={() => {
+              game.recallTiles();
+              game.passTurn();
+            }}
+            onExchange={() => {
+              game.recallTiles();
+              game.ui.openExchangeModal();
+            }}
+            onRecall={() => game.recallTiles()}
+            onShuffle={() => game.shuffleRack()}
+            onPause={() => game.pauseGame()}
+            onExit={() => game.ui.openExitConfirm()}
+            hasPendingTiles={game.pendingPlacements.length > 0}
+            canExchange={game.tileBag.length >= 7}
+            error={game.lastError}
+            tilesInBag={game.tileBag.length}
+            scorePreview={scorePreview}
+          />
+        </div>
+
+        <div className={styles.sidebar}>
+          <History moves={game.moveHistory} players={game.players} />
+        </div>
+      </div>
+
+      {/* Drag overlay */}
+      <DragOverlay>
+        {dragTileRef.current && (
+          <div style={{ width: 'var(--rack-tile-size)', height: 'var(--rack-tile-size)' }}>
+            <Tile tile={dragTileRef.current} isRackTile />
+          </div>
+        )}
+      </DragOverlay>
+
+      {/* Modals */}
+      {game.ui.showExchangeModal && currentPlayer && (
+        <ExchangeModal
+          rack={currentPlayer.rack}
+          onConfirm={(tiles) => game.exchangeTiles(tiles)}
+          onCancel={() => game.ui.closeExchangeModal()}
+        />
+      )}
+
+      {game.ui.showBlankModal && game.ui.blankTileId && (
+        <BlankTileModal
+          onSelect={(letter) => {
+            game.setBlankLetter(game.ui.blankTileId!, letter);
+            game.ui.closeBlankModal();
+          }}
+        />
+      )}
+
+      {game.ui.showTurnTransition && (
+        <TurnTransition
+          playerName={game.ui.turnTransitionPlayer}
+          onReady={() => game.ui.hideTransition()}
+        />
+      )}
+
+      {game.ui.showPauseOverlay && (
+        <PauseOverlay
+          onResume={() => game.resumeGame()}
+          onSaveAndQuit={() => game.saveAndQuit()}
+          onExit={() => game.ui.openExitConfirm()}
+        />
+      )}
+
+      {game.ui.showExitConfirm && (
+        <ExitConfirmModal
+          onConfirm={() => game.exitGame()}
+          onCancel={() => game.ui.closeExitConfirm()}
+        />
+      )}
+
+      {game.phase === 'ended' && (
+        <EndGame
+          players={game.players}
+          reason={game.endReason}
+          onPlayAgain={() => {
+            // Reset to setup
+            game.startGame(
+              game.players.map(p => p.name),
+              game.timerConfig
+            );
+          }}
+        />
+      )}
+    </DndContext>
+  );
+}
+
+export default App;

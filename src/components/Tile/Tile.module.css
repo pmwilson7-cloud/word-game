@@ -1,0 +1,97 @@
+.tile {
+  width: 100%;
+  height: 100%;
+  background: var(--color-tile);
+  color: var(--color-tile-text);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  position: relative;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+  user-select: none;
+  cursor: grab;
+}
+
+.tile:hover {
+  background: var(--color-tile-hover);
+}
+
+.tile.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.tile.blank {
+  font-style: italic;
+  color: #666;
+}
+
+.tile.placed {
+  background: var(--color-tile-placed);
+  cursor: default;
+}
+
+.tile.pending {
+  background: var(--color-tile-hover);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(233, 69, 96, 0.5), 1px 1px 3px rgba(0,0,0,0.3);
+  animation: tileAppear 0.15s ease-out;
+}
+
+@keyframes tileAppear {
+  from {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.letter {
+  font-size: calc(var(--cell-size) * 0.55);
+  line-height: 1;
+}
+
+.points {
+  position: absolute;
+  bottom: 1px;
+  right: 3px;
+  font-size: calc(var(--cell-size) * 0.25);
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* Rack tile sizing */
+.rackTile {
+  width: var(--rack-tile-size);
+  height: var(--rack-tile-size);
+}
+
+.rackTile .letter {
+  font-size: 22px;
+}
+
+.rackTile .points {
+  font-size: 10px;
+}
+
+.selected {
+  outline: 3px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.draggablePending {
+  cursor: grab;
+}
+
+.draggablePending:hover {
+  box-shadow: 0 0 12px rgba(233, 69, 96, 0.7), 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+.validWord {
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6), 1px 1px 3px rgba(0,0,0,0.3);
+}

@@ -1,0 +1,106 @@
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  transition: background 0.15s, opacity 0.15s, transform 0.1s;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btnPlay {
+  background: #4caf50;
+  color: white;
+}
+.btnPlay:hover { background: #66bb6a; }
+
+.btnPass {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+.btnPass:hover { background: #1a4a80; }
+
+.btnExchange {
+  background: #ff9800;
+  color: white;
+}
+.btnExchange:hover { background: #ffb74d; }
+
+.btnRecall {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.btnRecall:hover { background: var(--color-surface-alt); }
+
+.btnShuffle {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.btnShuffle:hover { background: var(--color-surface-alt); }
+
+.error {
+  width: 100%;
+  text-align: center;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px;
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.bagCount {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.scorePreview {
+  width: 100%;
+  text-align: center;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scoreTotal {
+  font-size: 22px;
+  font-weight: 800;
+  color: #4caf50;
+}
+
+.scoreWords {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.btnPause {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+.btnPause:hover { background: #1a4a80; }
+
+.btnExit {
+  background: #c62828;
+  color: white;
+}
+.btnExit:hover { background: #e53935; }
