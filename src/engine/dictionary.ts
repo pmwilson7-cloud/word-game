@@ -5,7 +5,7 @@ export async function loadDictionary(): Promise<Set<string>> {
   if (dictionary) return dictionary;
   if (loadingPromise) return loadingPromise;
 
-  loadingPromise = fetch('/sowpods.txt')
+  loadingPromise = fetch(`${import.meta.env.BASE_URL}sowpods.txt`)
     .then(res => {
       if (!res.ok) throw new Error(`Failed to load dictionary: ${res.status}`);
       return res.text();
