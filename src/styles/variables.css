@@ -39,6 +39,51 @@
   /* Timer */
   --color-timer-warning: #ff9800;
   --color-timer-danger: #f44336;
+
+  /* 3D Tile effects */
+  --tile-shadow:
+    0 2px 0 #c8a882,
+    1px 3px 0 #b89872,
+    0 4px 8px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+  --tile-shadow-hover:
+    0 3px 0 #c8a882,
+    1px 4px 0 #b89872,
+    0 6px 12px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+  --tile-shadow-active:
+    0 1px 0 #c8a882,
+    0 2px 4px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+  --tile-gradient: linear-gradient(135deg, #faf0d8 0%, #f5e6c8 40%, #ecdbb5 100%);
+  --tile-gradient-hover: linear-gradient(135deg, #fff6e0 0%, #ffeebb 40%, #f5e0aa 100%);
+
+  /* Board */
+  --color-board-felt: #2d5016;
+  --color-board-felt-dark: #234010;
+  --board-shadow:
+    0 4px 16px rgba(0,0,0,0.5),
+    inset 0 1px 2px rgba(255,255,255,0.05);
+
+  /* Rack shelf */
+  --rack-wood: linear-gradient(180deg, #5c3a1e 0%, #4a2e14 50%, #3d250f 100%);
+  --rack-grain:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.03) 3px,
+      rgba(0,0,0,0.03) 4px
+    );
+
+  /* Animation easings */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Modal */
+  --modal-bg: rgba(0, 0, 0, 0.85);
+  --modal-z: 100;
+  --modal-z-top: 110;
 }
 
 * {

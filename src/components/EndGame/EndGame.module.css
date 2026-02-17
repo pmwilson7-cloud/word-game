@@ -6,6 +6,12 @@
   align-items: center;
   justify-content: center;
   z-index: 100;
+  animation: overlayIn 0.3s var(--ease-smooth);
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal {
@@ -15,7 +21,19 @@
   text-align: center;
   max-width: 400px;
   width: 90%;
-  box-shadow: var(--shadow);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: modalIn 0.4s var(--ease-bounce) 0.1s both;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .title {
@@ -23,6 +41,18 @@
   font-weight: 800;
   color: var(--color-primary);
   margin-bottom: 8px;
+  animation: titlePop 0.3s var(--ease-bounce) 0.35s both;
+}
+
+@keyframes titlePop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .reason {
@@ -44,11 +74,29 @@
   padding: 8px 12px;
   background: var(--color-surface-alt);
   border-radius: var(--radius);
+  animation: standingIn 0.3s var(--ease-smooth) both;
+}
+
+.standing:nth-child(1) { animation-delay: 0.4s; }
+.standing:nth-child(2) { animation-delay: 0.5s; }
+.standing:nth-child(3) { animation-delay: 0.6s; }
+.standing:nth-child(4) { animation-delay: 0.7s; }
+
+@keyframes standingIn {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .standing.winner {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary), #ff6b81);
   color: white;
+  box-shadow: 0 0 12px rgba(233, 69, 96, 0.4);
 }
 
 .rank {
@@ -66,5 +114,18 @@
   font-weight: 700;
   padding: 12px 32px;
   border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  animation: btnIn 0.3s var(--ease-smooth) 0.8s both;
 }
-.playAgain:hover { background: var(--color-primary-hover); }
+
+@keyframes btnIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.playAgain:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}

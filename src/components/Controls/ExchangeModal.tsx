@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Tile as TileType } from '../../types/index.ts';
 import { Tile } from '../Tile/Tile.tsx';
+import modal from '../../styles/Modal.module.css';
 import styles from './Controls.module.css';
 
 interface ExchangeModalProps {
@@ -22,15 +23,9 @@ export function ExchangeModal({ rack, onConfirm, onCancel }: ExchangeModalProps)
   const selectedTiles = rack.filter(t => selected.has(t.id));
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
-    }}>
-      <div style={{
-        background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)',
-        padding: '24px 32px', textAlign: 'center', maxWidth: 400, width: '90%'
-      }}>
-        <h3 style={{ marginBottom: 12 }}>Select tiles to exchange</h3>
+    <div className={modal.overlay}>
+      <div className={modal.panel}>
+        <h3>Select tiles to exchange</h3>
         <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
           {rack.map(tile => (
             <Tile
@@ -42,7 +37,7 @@ export function ExchangeModal({ rack, onConfirm, onCancel }: ExchangeModalProps)
             />
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+        <div className={modal.actions}>
           <button
             className={`${styles.btn} ${styles.btnPlay}`}
             disabled={selected.size === 0}

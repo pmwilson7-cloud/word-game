@@ -32,3 +32,7 @@ export function isValidWord(word: string): boolean {
 export function isDictionaryLoaded(): boolean {
   return dictionary !== null;
 }
+
+export function getDictionary(): Set<string> | null {
+  return dictionary;
+}

@@ -2,12 +2,14 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore.ts';
 import { useTimerStore } from '../store/timerStore.ts';
 import { useUiStore } from '../store/uiStore.ts';
-import type { TimerConfig, Tile } from '../types/index.ts';
+import { useAIPlayer } from './useAIPlayer.ts';
+import type { TimerConfig, Tile, PlayerConfig } from '../types/index.ts';
 
 export function useGame() {
   const game = useGameStore();
   const timer = useTimerStore();
   const ui = useUiStore();
+  useAIPlayer();
   const prevPlayerIndex = useRef(game.currentPlayerIndex);
   const timerInitialized = useRef(false);
 
@@ -68,12 +70,12 @@ export function useGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startGame = useCallback((playerNames: string[], timerConfig: TimerConfig) => {
+  const startGame = useCallback((configs: PlayerConfig[], timerConfig: TimerConfig) => {
     timerInitialized.current = true;
-    gameActions.current.startGame(playerNames, timerConfig);
+    gameActions.current.startGame(configs, timerConfig);
     timerActions.current.initTimers(
       timerConfig.mode,
-      playerNames.length,
+      configs.length,
       timerConfig.perTurnSeconds,
       timerConfig.totalSeconds
     );

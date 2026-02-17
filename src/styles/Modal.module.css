@@ -1,0 +1,128 @@
+/* Shared modal system */
+
+/* Full-screen overlay backdrop */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--modal-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--modal-z);
+  animation: fadeIn 0.2s var(--ease-smooth);
+}
+
+.overlayTop {
+  z-index: var(--modal-z-top);
+}
+
+/* Full-screen layout (TurnTransition, PauseOverlay) */
+.fullScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.fullScreen h2 {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.fullScreen p {
+  color: var(--color-text-muted);
+}
+
+/* Contained panel (ExchangeModal, BlankTileModal, ExitConfirmModal) */
+.panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 24px 32px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.25s var(--ease-bounce);
+}
+
+.panelSmall {
+  max-width: 360px;
+}
+
+.panel h3 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Button row inside modals */
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Button variants */
+.btn {
+  font-size: 18px;
+  font-weight: 700;
+  padding: 14px 40px;
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s, background 0.15s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btnPrimary {
+  background: var(--color-primary);
+  color: white;
+}
+.btnPrimary:hover { background: var(--color-primary-hover); }
+
+.btnDanger {
+  background: #c62828;
+  color: white;
+}
+.btnDanger:hover { background: #e53935; }
+
+.btnWarning {
+  background: #ff9800;
+  color: white;
+}
+.btnWarning:hover { background: #ffb74d; }
+
+.btnSecondary {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+.btnSecondary:hover { background: #1a4a80; }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

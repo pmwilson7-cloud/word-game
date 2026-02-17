@@ -21,6 +21,8 @@ export interface BoardCell {
 
 export type Board = BoardCell[][];
 
+export type AIDifficulty = 'easy' | 'medium' | 'hard';
+
 export interface Player {
   id: string;
   name: string;
@@ -28,6 +30,14 @@ export interface Player {
   rack: Tile[];
   isEliminated: boolean;
   consecutivePasses: number;
+  isAI: boolean;
+  aiDifficulty?: AIDifficulty;
+}
+
+export interface PlayerConfig {
+  name: string;
+  isAI: boolean;
+  aiDifficulty?: AIDifficulty;
 }
 
 export interface PlacedTile {

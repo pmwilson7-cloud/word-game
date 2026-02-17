@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Board, Player, Tile, PlacedTile, Move, GamePhase, TimerConfig } from '../types/index.ts';
+import type { Board, Player, Tile, PlacedTile, Move, GamePhase, TimerConfig, PlayerConfig } from '../types/index.ts';
 import { createBoard, placeTiles, removeTiles } from '../engine/board.ts';
 import { createTileBag, drawTiles, returnTiles, shuffle, resetIdCounter } from '../engine/tileBag.ts';
 import { validateMove } from '../engine/moveValidator.ts';
@@ -25,7 +25,8 @@ export interface GameStore {
   hasSavedGame: boolean;
 
   // Actions
-  startGame: (playerNames: string[], timerConfig: TimerConfig) => void;
+  startGame: (configs: PlayerConfig[], timerConfig: TimerConfig) => void;
+  commitAIMove: (placements: PlacedTile[]) => void;
   placeTileOnBoard: (tile: Tile, row: number, col: number) => void;
   removeTileFromBoard: (row: number, col: number) => void;
   moveTileOnBoard: (fromRow: number, fromCol: number, toRow: number, toCol: number) => void;
@@ -55,20 +56,22 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   endReason: null,
   hasSavedGame: false,
 
-  startGame: (playerNames, timerConfig) => {
+  startGame: (configs, timerConfig) => {
     resetIdCounter();
     let bag = createTileBag();
 
-    const players: Player[] = playerNames.map((name, i) => {
+    const players: Player[] = configs.map((config, i) => {
       const { drawn, remaining } = drawTiles(bag, RACK_SIZE);
       bag = remaining;
       return {
         id: `player-${i}`,
-        name,
+        name: config.name,
         score: 0,
         rack: drawn,
         isEliminated: false,
         consecutivePasses: 0,
+        isAI: config.isAI,
+        aiDifficulty: config.aiDifficulty,
       };
     });
 
@@ -85,6 +88,80 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       lastError: null,
       endReason: null,
       hasSavedGame: false,
+    });
+  },
+
+  commitAIMove: (placements) => {
+    const { board, players, currentPlayerIndex, tileBag, moveHistory, consecutiveScorelessTurns } = get();
+
+    // Place tiles on the board
+    const newBoard = placeTiles(board, placements);
+
+    // Build pre-placement board for validation
+    const positions = placements.map(p => p.position);
+    const { board: boardBefore } = removeTiles(board, positions);
+
+    const result = validateMove(boardBefore, newBoard, placements);
+    if (!result.valid) {
+      // AI couldn't make a valid move — pass instead
+      get().passTurn();
+      return;
+    }
+
+    const { wordsFormed, totalScore } = calculateMoveScore(newBoard, result.words!, placements);
+    const { drawn, remaining } = drawTiles(tileBag, placements.length);
+
+    const move: Move = {
+      playerId: players[currentPlayerIndex].id,
+      type: 'play',
+      tilesPlaced: placements,
+      wordsFormed,
+      score: totalScore,
+      timestamp: Date.now(),
+    };
+
+    // Remove placed tiles from rack, add drawn tiles
+    const placedTileIds = new Set(placements.map(p => p.tile.id));
+    const newPlayers = players.map((p, i) =>
+      i === currentPlayerIndex
+        ? {
+            ...p,
+            score: p.score + totalScore,
+            rack: [...p.rack.filter(t => !placedTileIds.has(t.id)), ...drawn],
+            consecutivePasses: 0,
+          }
+        : p
+    );
+
+    const newScorelessTurns = totalScore === 0 ? consecutiveScorelessTurns + 1 : 0;
+    const nextIndex = getNextPlayerIndex(newPlayers, currentPlayerIndex);
+
+    const endCheck = shouldGameEnd(newPlayers, remaining, newScorelessTurns);
+    if (endCheck.ended) {
+      const finalPlayers = calculateFinalScores(newPlayers);
+      set({
+        phase: 'ended',
+        board: newBoard,
+        players: finalPlayers,
+        tileBag: remaining,
+        moveHistory: [...moveHistory, move],
+        pendingPlacements: [],
+        consecutiveScorelessTurns: newScorelessTurns,
+        lastError: null,
+        endReason: endCheck.reason ?? null,
+      });
+      return;
+    }
+
+    set({
+      board: newBoard,
+      players: newPlayers,
+      currentPlayerIndex: nextIndex,
+      tileBag: remaining,
+      moveHistory: [...moveHistory, move],
+      pendingPlacements: [],
+      consecutiveScorelessTurns: newScorelessTurns,
+      lastError: null,
     });
   },
 
