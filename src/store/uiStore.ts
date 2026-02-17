@@ -9,6 +9,8 @@ export interface UiStore {
   selectedRackTiles: Set<string>;
   showPauseOverlay: boolean;
   showExitConfirm: boolean;
+  showRules: boolean;
+  isAIThinking: boolean;
 
   openExchangeModal: () => void;
   closeExchangeModal: () => void;
@@ -22,6 +24,9 @@ export interface UiStore {
   closePauseOverlay: () => void;
   openExitConfirm: () => void;
   closeExitConfirm: () => void;
+  openRules: () => void;
+  closeRules: () => void;
+  setAIThinking: (b: boolean) => void;
 }
 
 export const useUiStore = create<UiStore>((set) => ({
@@ -33,6 +38,8 @@ export const useUiStore = create<UiStore>((set) => ({
   selectedRackTiles: new Set(),
   showPauseOverlay: false,
   showExitConfirm: false,
+  showRules: false,
+  isAIThinking: false,
 
   openExchangeModal: () => set({ showExchangeModal: true }),
   closeExchangeModal: () => set({ showExchangeModal: false, selectedRackTiles: new Set() }),
@@ -54,4 +61,7 @@ export const useUiStore = create<UiStore>((set) => ({
   closePauseOverlay: () => set({ showPauseOverlay: false }),
   openExitConfirm: () => set({ showExitConfirm: true }),
   closeExitConfirm: () => set({ showExitConfirm: false }),
+  openRules: () => set({ showRules: true }),
+  closeRules: () => set({ showRules: false }),
+  setAIThinking: (b) => set({ isAIThinking: b }),
 }));

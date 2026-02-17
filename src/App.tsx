@@ -14,8 +14,9 @@ import { BlankTileModal } from './components/Controls/BlankTileModal.tsx';
 import { TurnTransition } from './components/Controls/TurnTransition.tsx';
 import { PauseOverlay } from './components/Controls/PauseOverlay.tsx';
 import { ExitConfirmModal } from './components/Controls/ExitConfirmModal.tsx';
+import { Rules } from './components/Rules/Rules.tsx';
 import { Tile } from './components/Tile/Tile.tsx';
-import type { Tile as TileType, TimerConfig } from './types/index.ts';
+import type { Tile as TileType, TimerConfig, PlayerConfig } from './types/index.ts';
 import './styles/variables.css';
 import styles from './App.module.css';
 
@@ -28,23 +29,26 @@ function App() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Show turn transition on player change during playing phase
+  // Show turn transition on player change during playing phase (skip for AI)
   useEffect(() => {
     if (game.phase === 'playing' && prevPlayerIndex.current !== game.currentPlayerIndex) {
-      if (game.moveHistory.length > 0) {
-        game.ui.showTransition(game.players[game.currentPlayerIndex].name);
+      const nextPlayer = game.players[game.currentPlayerIndex];
+      if (game.moveHistory.length > 0 && !nextPlayer?.isAI) {
+        game.ui.showTransition(nextPlayer.name);
       }
       prevPlayerIndex.current = game.currentPlayerIndex;
     }
   }, [game.currentPlayerIndex, game.phase, game.moveHistory.length, game.ui, game.players]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    if (game.players[game.currentPlayerIndex]?.isAI) return;
     const tile = event.active.data.current?.tile as TileType | undefined;
     if (tile) dragTileRef.current = tile;
-  }, []);
+  }, [game.players, game.currentPlayerIndex]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     dragTileRef.current = null;
+    if (game.players[game.currentPlayerIndex]?.isAI) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -72,6 +76,7 @@ function App() {
   }, [game]);
 
   const handleCellClick = useCallback((row: number, col: number) => {
+    if (game.players[game.currentPlayerIndex]?.isAI) return;
     game.removeTileFromBoard(row, col);
   }, [game]);
 
@@ -97,11 +102,14 @@ function App() {
   // Setup screen
   if (game.phase === 'setup') {
     return (
-      <Setup
-        onStart={(names: string[], config: TimerConfig) => game.startGame(names, config)}
-        hasSavedGame={game.hasSavedGame}
-        onResumeSavedGame={() => game.resumeSavedGame()}
-      />
+      <>
+        <Setup
+          onStart={(configs: PlayerConfig[], config: TimerConfig) => game.startGame(configs, config)}
+          hasSavedGame={game.hasSavedGame}
+          onResumeSavedGame={() => game.resumeSavedGame()}
+        />
+        {game.ui.showRules && <Rules onClose={() => game.ui.closeRules()} />}
+      </>
     );
   }
 
@@ -122,33 +130,41 @@ function App() {
               <div className={styles.turnLabel}>
                 {currentPlayer.name}'s turn
               </div>
-              <Rack tiles={currentPlayer.rack} />
+              {currentPlayer.isAI ? (
+                game.ui.isAIThinking && (
+                  <div className={styles.aiThinking}>Thinking...</div>
+                )
+              ) : (
+                <Rack tiles={currentPlayer.rack} />
+              )}
             </>
           )}
         </div>
 
-        <div className={styles.controlsArea}>
-          <Controls
-            onPlay={() => game.commitMove()}
-            onPass={() => {
-              game.recallTiles();
-              game.passTurn();
-            }}
-            onExchange={() => {
-              game.recallTiles();
-              game.ui.openExchangeModal();
-            }}
-            onRecall={() => game.recallTiles()}
-            onShuffle={() => game.shuffleRack()}
-            onPause={() => game.pauseGame()}
-            onExit={() => game.ui.openExitConfirm()}
-            hasPendingTiles={game.pendingPlacements.length > 0}
-            canExchange={game.tileBag.length >= 7}
-            error={game.lastError}
-            tilesInBag={game.tileBag.length}
-            scorePreview={scorePreview}
-          />
-        </div>
+        {(!currentPlayer?.isAI) && (
+          <div className={styles.controlsArea}>
+            <Controls
+              onPlay={() => game.commitMove()}
+              onPass={() => {
+                game.recallTiles();
+                game.passTurn();
+              }}
+              onExchange={() => {
+                game.recallTiles();
+                game.ui.openExchangeModal();
+              }}
+              onRecall={() => game.recallTiles()}
+              onShuffle={() => game.shuffleRack()}
+              onPause={() => game.pauseGame()}
+              onExit={() => game.ui.openExitConfirm()}
+              hasPendingTiles={game.pendingPlacements.length > 0}
+              canExchange={game.tileBag.length >= 7}
+              error={game.lastError}
+              tilesInBag={game.tileBag.length}
+              scorePreview={scorePreview}
+            />
+          </div>
+        )}
 
         <div className={styles.sidebar}>
           <History moves={game.moveHistory} players={game.players} />
@@ -197,6 +213,8 @@ function App() {
         />
       )}
 
+      {game.ui.showRules && <Rules onClose={() => game.ui.closeRules()} />}
+
       {game.ui.showExitConfirm && (
         <ExitConfirmModal
           onConfirm={() => game.exitGame()}
@@ -209,9 +227,12 @@ function App() {
           players={game.players}
           reason={game.endReason}
           onPlayAgain={() => {
-            // Reset to setup
             game.startGame(
-              game.players.map(p => p.name),
+              game.players.map(p => ({
+                name: p.name,
+                isAI: p.isAI,
+                aiDifficulty: p.aiDifficulty,
+              })),
               game.timerConfig
             );
           }}
