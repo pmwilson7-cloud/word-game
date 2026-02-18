@@ -7,6 +7,7 @@ import type { ClientToServerEvents, ServerToClientEvents } from '../../src/types
 
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
+const corsOrigins = CORS_ORIGIN.split(',').map(o => o.trim());
 
 // Load dictionary at startup
 loadServerDictionary();
@@ -16,7 +17,7 @@ const httpServer = createServer(app);
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: CORS_ORIGIN,
+    origin: corsOrigins,
     methods: ['GET', 'POST'],
   },
 });
