@@ -36,3 +36,7 @@ export function isDictionaryLoaded(): boolean {
 export function getDictionary(): Set<string> | null {
   return dictionary;
 }
+
+export function setDictionary(words: Set<string>): void {
+  dictionary = words;
+}

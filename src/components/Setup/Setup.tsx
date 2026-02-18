@@ -15,6 +15,7 @@ interface SetupProps {
   onStart: (configs: PlayerConfig[], timerConfig: TimerConfig) => void;
   hasSavedGame?: boolean;
   onResumeSavedGame?: () => void;
+  onPlayOnline?: () => void;
 }
 
 function defaultName(index: number, isAI: boolean, difficulty: AIDifficulty): string {
@@ -22,7 +23,7 @@ function defaultName(index: number, isAI: boolean, difficulty: AIDifficulty): st
   return `Player ${index + 1}`;
 }
 
-export function Setup({ onStart, hasSavedGame, onResumeSavedGame }: SetupProps) {
+export function Setup({ onStart, hasSavedGame, onResumeSavedGame, onPlayOnline }: SetupProps) {
   const [playerSetups, setPlayerSetups] = useState<PlayerSetup[]>([
     { name: 'Player 1', isAI: false, aiDifficulty: 'medium' },
     { name: 'Player 2', isAI: false, aiDifficulty: 'medium' },
@@ -186,8 +187,17 @@ export function Setup({ onStart, hasSavedGame, onResumeSavedGame }: SetupProps) 
           )
         }
       >
-        Start Game
+        Start Local Game
       </button>
+
+      {onPlayOnline && (
+        <button
+          className={styles.onlineBtn}
+          onClick={onPlayOnline}
+        >
+          Play Online
+        </button>
+      )}
     </div>
   );
 }

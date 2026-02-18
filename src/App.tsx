@@ -1,7 +1,8 @@
-import { useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { DndContext, DragOverlay, type DragStartEvent, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGame } from './hooks/useGame.ts';
 import { useScorePreview } from './hooks/useScorePreview.ts';
+import { useOnlineStore } from './store/onlineStore.ts';
 import { Setup } from './components/Setup/Setup.tsx';
 import { Board } from './components/Board/Board.tsx';
 import { Rack } from './components/Rack/Rack.tsx';
@@ -16,11 +17,71 @@ import { PauseOverlay } from './components/Controls/PauseOverlay.tsx';
 import { ExitConfirmModal } from './components/Controls/ExitConfirmModal.tsx';
 import { Rules } from './components/Rules/Rules.tsx';
 import { Tile } from './components/Tile/Tile.tsx';
+import { Lobby } from './components/Lobby/Lobby.tsx';
+import { WaitingRoom } from './components/Lobby/WaitingRoom.tsx';
+import { OnlineApp } from './OnlineApp.tsx';
+import { useSocketListeners } from './hooks/useSocketListeners.ts';
+import { connectSocket } from './hooks/useSocket.ts';
 import type { Tile as TileType, TimerConfig, PlayerConfig } from './types/index.ts';
 import './styles/variables.css';
 import styles from './App.module.css';
 
+type AppMode = 'menu' | 'local' | 'online';
+
 function App() {
+  const [mode, setMode] = useState<AppMode>(() => {
+    // Check for saved online session to rejoin
+    const savedRoom = sessionStorage.getItem('wg-room');
+    const savedPlayer = sessionStorage.getItem('wg-player');
+    if (savedRoom && savedPlayer) return 'online';
+    return 'menu';
+  });
+  const rejoinAttempted = useRef(false);
+
+  // Auto-rejoin on page refresh
+  useEffect(() => {
+    if (mode === 'online' && !rejoinAttempted.current) {
+      rejoinAttempted.current = true;
+      const savedRoom = sessionStorage.getItem('wg-room');
+      const savedPlayer = sessionStorage.getItem('wg-player');
+      if (savedRoom && savedPlayer) {
+        const socket = connectSocket();
+        socket.emit('room:rejoin', { roomCode: savedRoom, playerId: savedPlayer }, (response) => {
+          if (response.ok) {
+            useOnlineStore.getState().setRoom(savedRoom, savedPlayer);
+          } else {
+            sessionStorage.removeItem('wg-room');
+            sessionStorage.removeItem('wg-player');
+            setMode('menu');
+          }
+        });
+      }
+    }
+  }, [mode]);
+
+  if (mode === 'online') {
+    return <OnlineWrapper onExit={() => setMode('menu')} />;
+  }
+
+  // Local mode or menu
+  return <LocalApp mode={mode} setMode={setMode} />;
+}
+
+// Wrapper that stays mounted across all online phases so socket listeners persist
+function OnlineWrapper({ onExit }: { onExit: () => void }) {
+  useSocketListeners();
+  const onlinePhase = useOnlineStore(s => s.phase);
+
+  if (onlinePhase === 'idle' || onlinePhase === 'lobby') {
+    return <Lobby onBack={() => { useOnlineStore.getState().reset(); onExit(); }} />;
+  }
+  if (onlinePhase === 'waiting') {
+    return <WaitingRoom />;
+  }
+  return <OnlineApp onExit={onExit} />;
+}
+
+function LocalApp({ setMode }: { mode: AppMode; setMode: (m: AppMode) => void }) {
   const game = useGame();
   const dragTileRef = useRef<TileType | null>(null);
   const prevPlayerIndex = useRef(game.currentPlayerIndex);
@@ -59,7 +120,6 @@ function App() {
       const source = active.data.current?.source;
       if (source === 'rack') {
         if (tile.isBlank && !tile.designatedLetter) {
-          // Need to pick a letter first — place it then prompt
           game.placeTileOnBoard(tile, dropData.row, dropData.col);
           game.ui.openBlankModal(tile.id);
         } else {
@@ -104,9 +164,10 @@ function App() {
     return (
       <>
         <Setup
-          onStart={(configs: PlayerConfig[], config: TimerConfig) => game.startGame(configs, config)}
+          onStart={(configs: PlayerConfig[], config: TimerConfig) => { setMode('local'); game.startGame(configs, config); }}
           hasSavedGame={game.hasSavedGame}
-          onResumeSavedGame={() => game.resumeSavedGame()}
+          onResumeSavedGame={() => { setMode('local'); game.resumeSavedGame(); }}
+          onPlayOnline={() => setMode('online')}
         />
         {game.ui.showRules && <Rules onClose={() => game.ui.closeRules()} />}
       </>
@@ -217,7 +278,7 @@ function App() {
 
       {game.ui.showExitConfirm && (
         <ExitConfirmModal
-          onConfirm={() => game.exitGame()}
+          onConfirm={() => { game.exitGame(); setMode('menu'); }}
           onCancel={() => game.ui.closeExitConfirm()}
         />
       )}
