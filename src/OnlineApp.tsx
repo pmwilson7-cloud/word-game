@@ -1,5 +1,5 @@
 import { useCallback, useRef, useMemo } from 'react';
-import { DndContext, DragOverlay, type DragStartEvent, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, type DragStartEvent, type DragEndEvent, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useOnlineGame } from './hooks/useOnlineGame.ts';
 import { useScorePreview } from './hooks/useScorePreview.ts';
 import { Board } from './components/Board/Board.tsx';
@@ -40,7 +40,8 @@ export function OnlineApp({ onExit }: OnlineAppProps) {
   const dragTileRef = useRef<TileType | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   );
 
   const isMyTurn = game.currentPlayerIndex === game.myPlayerIndex;

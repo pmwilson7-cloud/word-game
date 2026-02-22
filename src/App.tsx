@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { DndContext, DragOverlay, type DragStartEvent, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, type DragStartEvent, type DragEndEvent, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGame } from './hooks/useGame.ts';
 import { useScorePreview } from './hooks/useScorePreview.ts';
 import { useOnlineStore } from './store/onlineStore.ts';
@@ -87,7 +87,8 @@ function LocalApp({ setMode }: { mode: AppMode; setMode: (m: AppMode) => void })
   const prevPlayerIndex = useRef(game.currentPlayerIndex);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   );
 
   // Show turn transition on player change during playing phase (skip for AI)
