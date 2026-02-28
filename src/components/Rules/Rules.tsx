@@ -15,7 +15,7 @@ export function Rules({ onClose }: RulesProps) {
           <div className={styles.section}>
             <h4>Validity</h4>
             <p>
-              All words played must be found in the game dictionary (SOWPODS).
+              All words played must be found in the game dictionary (TWL06).
               Proper nouns, abbreviations, and hyphenated words are not allowed.
             </p>
           </div>

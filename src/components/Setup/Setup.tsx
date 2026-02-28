@@ -84,6 +84,7 @@ export function Setup({ onStart, hasSavedGame, onResumeSavedGame, onPlayOnline }
   const canStart = dictLoaded && hasHuman && playerSetups.every(p => p.name.trim().length > 0);
 
   return (
+    <div className={styles.setupBg}>
     <div className={styles.setup}>
       <h1 className={styles.title}>Speed Words</h1>
       <p className={styles.subtitle}>A multiplayer word game with a twist</p>
@@ -169,7 +170,7 @@ export function Setup({ onStart, hasSavedGame, onResumeSavedGame, onPlayOnline }
       )}
       {dictError && (
         <p className={styles.loadingMsg} style={{ color: 'var(--color-primary)' }}>
-          Failed to load dictionary. Place sowpods.txt in the public/ folder.
+          Failed to load dictionary. Place twl06.txt in the public/ folder.
         </p>
       )}
 
@@ -198,6 +199,7 @@ export function Setup({ onStart, hasSavedGame, onResumeSavedGame, onPlayOnline }
           Play Online
         </button>
       )}
+    </div>
     </div>
   );
 }

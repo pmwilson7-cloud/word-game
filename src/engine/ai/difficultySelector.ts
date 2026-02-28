@@ -34,4 +34,7 @@ export function selectMove(moves: AIMove[], difficulty: AIDifficulty): AIMove | 
       return sorted[sorted.length - 1];
     }
   }
+
+  // Safety net: if we somehow fall through, always play a move when one exists
+  return sorted[Math.floor(Math.random() * sorted.length)];
 }
